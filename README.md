@@ -24,7 +24,9 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Backend Untuk Project SIBW 
+
+DB SIBW
 
 ## Installation
 
@@ -57,3 +59,6 @@ $ pnpm run test:e2e
 # test coverage
 $ pnpm run test:cov
 ```
+
+## RUMUS
+```bash
