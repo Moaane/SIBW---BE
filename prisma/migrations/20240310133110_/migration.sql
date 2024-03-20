@@ -20,25 +20,38 @@ CREATE TABLE "Area" (
     "depth" INTEGER NOT NULL,
     "fishTotal" INTEGER NOT NULL,
     "fishWeight" INTEGER NOT NULL,
-    "turnCompleted" INTEGER NOT NULL DEFAULT 0,
+    "dayCompleted" INTEGER NOT NULL DEFAULT 0,
     "userId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3),
 
     CONSTRAINT "Area_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Activities" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "note" TEXT,
+    "day" INTEGER NOT NULL,
+    "time" TIME NOT NULL,
+    "feedTotal" TEXT NOT NULL,
+    "isComplete" BOOLEAN NOT NULL DEFAULT false,
+    "areaId" INTEGER,
+
+    CONSTRAINT "Activities_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ActivityTemplate" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
+    "description" TEXT,
     "note" TEXT,
-    "turn" INTEGER NOT NULL,
     "day" INTEGER NOT NULL,
-    "time" TEXT NOT NULL,
+    "time" TIME NOT NULL,
     "feedPercent" DOUBLE PRECISION NOT NULL,
-    "feedTotal" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "ActivityTemplate_pkey" PRIMARY KEY ("id")
 );
@@ -48,3 +61,6 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- AddForeignKey
 ALTER TABLE "Area" ADD CONSTRAINT "Area_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activities" ADD CONSTRAINT "Activities_areaId_fkey" FOREIGN KEY ("areaId") REFERENCES "Area"("id") ON DELETE SET NULL ON UPDATE CASCADE;

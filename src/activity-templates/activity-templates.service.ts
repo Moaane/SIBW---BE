@@ -1,64 +1,105 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ActivityTemplate } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   CreateActivityTemplateDto,
   UpdateActivityTemplateDto,
 } from './activity-template.dto';
+import { ActivityTemplateResponse } from './activity-templates.type';
 
 @Injectable()
 export class ActivityTemplatesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(page: number, pageSize: number) {
-    const skip = (page - 1) * pageSize;
+  async findAll(page: number): Promise<ActivityTemplateResponse> {
+    const perPage = 10;
+    const skip = page > 0 ? perPage * (page - 1) : 0;
 
-    const ats = await this.prisma.activityTemplate.findMany({
-      skip,
-      take: pageSize,
-      orderBy: [{ day: 'asc' }, { time: 'asc' }],
-    });
+    const [data, total] = await Promise.all([
+      this.prisma.activityTemplate.findMany({
+        skip,
+        take: perPage,
+        orderBy: [{ day: 'asc' }, { time: 'asc' }],
+      }),
+      this.prisma.activityTemplate.count(),
+    ]);
 
-    const total = await this.prisma.activityTemplate.count();
-
-    const totalPages = Math.ceil(total / pageSize);
+    const lastPage = Math.ceil(total / perPage);
 
     return {
-      ats,
-      total,
-      totalPages,
+      meta: {
+        total,
+        lastPage,
+        currentPage: page,
+        perPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null,
+      },
+      data,
     };
   }
 
   async findOne(id: number): Promise<ActivityTemplate> {
-    return await this.prisma.activityTemplate.findUnique({ where: { id } });
+    const ats = await this.prisma.activityTemplate.findUnique({
+      where: { id },
+    });
+
+    if (!ats) {
+      throw new NotFoundException('Activity template not found');
+    }
+
+    return ats;
   }
 
   async create(body: CreateActivityTemplateDto): Promise<ActivityTemplate> {
-    const dayString: string = String(body.day);
-    return await this.prisma.activityTemplate.create({
-      data: {
-        ...body,
-        day: dayString,
-      },
+    const newAts = await this.prisma.activityTemplate.create({
+      data: body,
     });
+
+    if (!newAts) {
+      throw new BadRequestException('Failed create activity template');
+    }
+
+    return newAts;
   }
 
   async update(
     id: number,
     body: UpdateActivityTemplateDto,
   ): Promise<ActivityTemplate> {
-    const dayString: string = String(body.day); 
-    return await this.prisma.activityTemplate.update({
+    const atToUpadate = await this.prisma.activityTemplate.findUnique({
       where: { id },
-      data: {
-        ...body,
-        day: dayString,
-      },
     });
+
+    if (!atToUpadate) {
+      throw new NotFoundException('Activity template not found');
+    }
+
+    const updatedAt = await this.prisma.activityTemplate.update({
+      where: { id },
+      data: body,
+    });
+
+    if (!updatedAt) {
+      throw new BadRequestException('Failed to update actiivity template');
+    }
+
+    return updatedAt;
   }
 
-  async delete(id: number) {
-    return await this.prisma.activityTemplate.delete({ where: { id } });
+  async delete(id: number): Promise<void> {
+    const deletedAt = await this.prisma.activityTemplate.delete({
+      where: { id },
+    });
+
+    if (!deletedAt) {
+      throw new NotFoundException('Activity template not found');
+    }
+
+    return;
   }
 }

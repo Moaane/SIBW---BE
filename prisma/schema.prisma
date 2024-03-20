@@ -20,29 +20,43 @@ model User {
 }
 
 model Area {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   name         String
   wide         Int
   depth        Int
   fishTotal    Int
   fishWeight   Int
-  dayCompleted Int      @default(0)
-  userId       Int?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  dayCompleted Int       @default(0)
+  userId       Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
 
-  User User? @relation(fields: [userId], references: [id])
-} 
+  activities Activities[]
+  User       User         @relation(fields: [userId], references: [id])
+}
+
+model Activities {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  note        String?
+  day         Int
+  time        String
+  feedTotal   String
+  isComplete  Boolean @default(false)
+  areaId      Int?
+
+  Area Area? @relation(fields: [areaId], references: [id])
+}
 
 model ActivityTemplate {
   id          Int     @id @default(autoincrement())
   name        String
   description String?
   note        String?
-  day         String
+  day         Int
   time        String
   feedPercent Float
-  feedTotal   Int     @default(0)
 }
 
 enum Role {

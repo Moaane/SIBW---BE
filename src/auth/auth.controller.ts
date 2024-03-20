@@ -8,7 +8,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto } from './auth.dto';
+import { LoginDto, RegisterDto } from './auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -16,22 +16,12 @@ export class AuthController {
 
   @HttpCode(200)
   @Post('login')
-  async login(
-    @Body() body: LoginDto,
-    @Query('remember', ParseBoolPipe) remember: boolean,
-  ) {
-    if (remember == true) {
-      const user = await this.authService.loginWithRemember(body);
-      return {
-        token: user,
-        statusCode: HttpStatus.OK,
-      };
-    }
+  async login(@Body() body: LoginDto) {
+    return await this.authService.login(body);
+  }
 
-    const user = await this.authService.login(body);
-    return {
-      token: user,
-      statusCode: HttpStatus.OK,
-    };
+  @Post('register')
+  async register(@Body() body: RegisterDto) {
+    return await this.authService.register(body);
   }
 }

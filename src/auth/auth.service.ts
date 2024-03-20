@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { LoginDto, RegisterDto } from './auth.dto';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -22,32 +23,28 @@ export class AuthService {
       ...body,
       role: 'USER',
     });
-    return newUser;
+
+    const tokens = await this.getTokens(
+      newUser.id,
+      newUser.email,
+      newUser.role,
+    );
+    return {
+      token: tokens.refreshToken,
+    };
   }
 
   async login(body: LoginDto) {
     const user = await this.userService.findByEmail(body.email);
-    if (!user) throw new BadRequestException('User does not exist');
 
     const passwordMatches = await bcrypt.compare(body.password, user.password);
     if (!passwordMatches)
       throw new BadRequestException('Password is incorrect');
 
-    const tokens = await this.getTokens(user.id, user.email);
-    return tokens;
-  }
-
-  async loginWithRemember(body: LoginDto) {
-    const user = await this.userService.findByEmail(body.email);
-    if (!user) throw new BadRequestException('User does not exist');
-
-    const passwordMatches = await bcrypt.compare(body.password, user.password);
-    if (!passwordMatches)
-      throw new BadRequestException('Password is incorrect');
-
-    const tokens = await this.getTokens(user.id, user.email);
-    await this.updateRefreshToken(user.id, user.email, tokens.refreshToken);
-    return tokens;
+    const tokens = await this.getTokens(user.id, user.email, user.role);
+    return {
+      token: tokens.refreshToken,
+    };
   }
 
   async logout(userId: number) {
@@ -65,17 +62,20 @@ export class AuthService {
     );
 
     if (!refreshTokenMatches) throw new ForbiddenException('Access denied');
-    const tokens = await this.getTokens(user.id, user.email);
+    const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, user.email, tokens.refreshToken);
-    return tokens;
+    return {
+      token: tokens.refreshToken,
+    };
   }
 
-  async getTokens(userId: number, email: string) {
+  async getTokens(userId: number, email: string, role: Role) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(
         {
           sub: userId,
           email,
+          role,
         },
         {
           secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
@@ -86,6 +86,7 @@ export class AuthService {
         {
           sub: userId,
           email,
+          role,
         },
         {
           secret: this.configService.get<string>('JWT_REFRESH_SECRET'),

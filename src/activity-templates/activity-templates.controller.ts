@@ -16,6 +16,8 @@ import {
   CreateActivityTemplateDto,
   UpdateActivityTemplateDto,
 } from './activity-template.dto';
+import { ActivityTemplateResponse } from './activity-templates.type';
+import { ActivityTemplate } from '@prisma/client';
 
 @Controller('activity-templates')
 export class ActivityTemplatesController {
@@ -26,52 +28,34 @@ export class ActivityTemplatesController {
   @Get('find-all')
   async findAll(
     @Query('page', ParseIntPipe) page: number,
-    @Query('pageSize', ParseIntPipe) pageSize: number,
-  ) {
-    const ats = await this.activityTemplatesService.findAll(page, pageSize);
-    return {
-      data: ats,
-      statusCode: HttpStatus.OK,
-    };
+  ): Promise<ActivityTemplateResponse> {
+    return await this.activityTemplatesService.findAll(page);
   }
 
   @Get('find/:id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    const at = await this.activityTemplatesService.findOne(id);
-    return {
-      data: at,
-      statusCode: HttpStatus.OK,
-    };
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ActivityTemplate> {
+    return await this.activityTemplatesService.findOne(id);
   }
 
-  @HttpCode(201)
   @Post('create')
-  async create(@Body() body: CreateActivityTemplateDto) {
-    const newAt = await this.activityTemplatesService.create(body);
-    return {
-      data: newAt,
-      statusCode: HttpStatus.CREATED,
-    };
+  async create(
+    @Body() body: CreateActivityTemplateDto,
+  ): Promise<ActivityTemplate> {
+    return await this.activityTemplatesService.create(body);
   }
 
   @Patch('update/:id')
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateActivityTemplateDto,
-  ) {
-    const updatedAt = await this.activityTemplatesService.update(id, body);
-    return {
-      data: updatedAt,
-      statusCode: HttpStatus.OK,
-    };
+  ): Promise<ActivityTemplate> {
+    return await this.activityTemplatesService.update(id, body);
   }
 
   @Delete('delete/:id')
-  async delete(@Param('id', ParseIntPipe) id: number) {
-    const deletedAt = await this.activityTemplatesService.delete(id);
-    return {
-      data: deletedAt,
-      statusCode: HttpStatus.GONE,
-    };
+  async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return await this.activityTemplatesService.delete(id);
   }
 }

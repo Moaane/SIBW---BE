@@ -1,22 +1,25 @@
 import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { ActivityTemplateEntity } from './activity-template.entity';
 
-export class CreateActivityTemplateDto {
+export class CreateActivityTemplateDto extends OmitType(
+  ActivityTemplateEntity,
+  ['id'],
+) {
   name: string;
-  description: string;
-  note: string;
-  time: string;
   day: number;
+  time: string;
   feedPercent: number;
-  feedTotal: number;
+  note: string;
+  description: string;
 }
 
-export class UpdateActivityTemplateDto {
+export class UpdateActivityTemplateDto extends PartialType(
+  CreateActivityTemplateDto,
+) {
   name?: string;
-  description?: string;
-  note?: string;
   day?: number;
   time?: string;
   feedPercent?: number;
-  feedTotal?: number;
+  note?: string;
+  description?: string;
 }

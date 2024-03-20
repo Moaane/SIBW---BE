@@ -1,58 +1,89 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Area } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateAreaDto, UpdateAreaDto } from './area.dto';
+import { AreaResponse } from './area.type';
 
 @Injectable()
 export class AreasService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(page: number, pageSize: number) {
-    const skip = (page - 1) * pageSize;
-    const area = await this.prisma.area.findMany({
-      skip,
-      take: pageSize,
-    });
-    const total = await this.prisma.area.count();
-    const totalPages = Math.ceil(total / pageSize);
+  async findAll(userId: number, page: number): Promise<AreaResponse> {
+    const perPage = 10;
+    const skip = page > 0 ? perPage * (page - 1) : 0;
+
+    const [data, total] = await Promise.all([
+      this.prisma.area.findMany({
+        where: { userId },
+        skip,
+        take: perPage,
+      }),
+      this.prisma.area.count(),
+    ]);
+    const lastPage = Math.ceil(total / perPage);
 
     return {
-      area,
-      total,
-      totalPages,
-    };
-  }
-
-  async findAllByUser(userId: number, page: number, pageSize: number) {
-    const skip = (page - 1) * pageSize;
-    const area = await this.prisma.area.findMany({
-      where: { userId },
-      skip,
-      take: pageSize,
-    });
-    const total = await this.prisma.area.count({ where: { userId } });
-    const totalPages = Math.ceil(total / pageSize);
-
-    return {
-      area,
-      total,
-      totalPages,
+      meta: {
+        total,
+        lastPage,
+        currentPage: page,
+        perPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null,
+      },
+      data,
     };
   }
 
   async findOne(id: number): Promise<Area> {
-    return await this.prisma.area.findUnique({ where: { id } });
+    const area = await this.prisma.area.findUnique({ where: { id } });
+
+    if (!area) {
+      throw new NotFoundException('Area not found');
+    }
+
+    return area;
   }
 
-  async create(body: CreateAreaDto): Promise<Area> {
-    return await this.prisma.area.create({ data: body });
+  async create(userId: number, body: CreateAreaDto): Promise<Area> {
+    const newArea = await this.prisma.area.create({
+      data: {
+        ...body,
+        userId,
+      },
+    });
+
+    if (!newArea) {
+      throw new BadRequestException('Failed to create new area');
+    }
+
+    return newArea;
   }
 
   async update(id: number, body: UpdateAreaDto): Promise<Area> {
-    return await this.prisma.area.update({ where: { id }, data: body });
+    const updatedArea = await this.prisma.area.update({
+      where: { id },
+      data: body,
+    });
+
+    if (!updatedArea) {
+      throw new BadRequestException('Failed to update area');
+    }
+
+    return updatedArea;
   }
 
-  async delete(id: number) {
-    return await this.prisma.area.delete({ where: { id } });
+  async delete(id: number): Promise<void> {
+    const deletedArea = await this.prisma.area.delete({ where: { id } });
+
+    if (!deletedArea) {
+      throw new NotFoundException('Area not found');
+    }
+
+    return;
   }
 }

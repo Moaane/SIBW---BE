@@ -15,34 +15,26 @@ import { ActivitiesService } from './activities.service';
 export class ActivitiesController {
   constructor(private readonly activitiesService: ActivitiesService) {}
 
-  @HttpCode(200)
-  @Get('find-all')
-  async findAll(
-    @Query('areaId', ParseIntPipe) areaId: number,
-    @Query('page', ParseIntPipe) page: number,
-    @Query('pageSize', ParseIntPipe) pageSize: number,
-  ) {
-    const activities = await this.activitiesService.findAll(
-      areaId,
-      page,
-      pageSize,
-    );
-    return {
-      data: activities,
-      statusCode: HttpStatus.OK,
-    };
-  }
+  // @HttpCode(200)
+  // @Get('find-all/:id')
+  // async findAll(
+  //   @Param('id', ParseIntPipe) id: number,
+  //   @Query('userId', ParseIntPipe) userId: number,
+  //   @Query('page', ParseIntPipe) page: number,
+  //   @Query('perPage', ParseIntPipe) perPage: number,
+  // ) {
+  //   return await this.activitiesService.findAll(id, userId, page, perPage);
+  // }
 
-  @HttpCode(200)
-  @Post('next-activity')
-  async nextActivity(
-    @Query('areaId', ParseIntPipe) areaId: number,
-    @Query('turn', ParseIntPipe) turn: number,
-  ) {
-    const activities = await this.activitiesService.nextActivity(areaId, turn);
-    return {
-      data: activities,
-      statusCode: HttpStatus.OK,
-    };
-  }
+  // @HttpCode(200)
+  // @Post('next-activity/:id')
+  // async nextActivity(@Param('id', ParseIntPipe) id: number): Promise<boolean> {
+  //   await this.activitiesService.nextActivity(id);
+  //   return true;
+  // }
+
+  // @Get('muhaha')
+  // async getMaxDay() {
+  //   return await this.activitiesService.getMaxDay();
+  // }
 }
