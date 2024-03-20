@@ -62,3 +62,32 @@ $ pnpm run test:cov
 
 ## RUMUS
 ```bash
+
+Air kolam ideal 100 - 120 cm
+
+Menebar benih 
+200 ekor / m2 minimal 
+400 ekor / m2 maksimal
+
+Kapasitas kolam ideal 1 - 1.5 m
+
+Pemberian pakan utama
+min protein (30%)
+min lemak (4% - 16%)
+min karbohidrat (15% - 20%)
+jumlah pakan 3% - 6% berat bobot / hari
+setiap 10 hari cek ulang
+
+Frekuensi pemberian pakan ikan
+kecil 4 - 5x / hari
+
+pengelolaan air (danger)
+jika ada bau atau sampah buang 1/3 air
+
+Panen setelah ukuran 9 - 12 / kg
+ideal 2,5 - 3,5 bulan
+
+referensi 
+https://dppp.bangkaselatankab.go.id/
+Dinas Perikanan Kabupaten Pamekasan
+www.alamtani.com
