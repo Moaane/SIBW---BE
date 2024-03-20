@@ -60,7 +60,7 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
-## RUMUS
+## Rumus
 ```bash
 
 Air kolam ideal 100 - 120 cm
