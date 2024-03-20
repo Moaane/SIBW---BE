@@ -69,6 +69,7 @@ export class UsersService {
   }
 
   async create(body: CreateUserDto): Promise<User> {
+    console.log(body)
     const isEmailValid = await this.prisma.user.findUnique({
       where: { email: body.email },
     });
@@ -122,13 +123,20 @@ export class UsersService {
       throw new BadRequestException('Role not found');
     }
 
-    const hashedPassword = await bcrypt.hash(body.password, 8);
+    if (body.password) {
+      const hashedPassword = await bcrypt.hash(body.password, 8);
+      const updatedUser = await this.prisma.user.update({
+        where: { id },
+        data: {
+          ...body,
+          password: hashedPassword,
+        },
+      });
+    }
+
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: {
-        ...body,
-        password: hashedPassword,
-      },
+      data: body,
     });
 
     if (!updatedUser) {

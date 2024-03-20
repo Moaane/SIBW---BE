@@ -96,7 +96,10 @@ export class ActivitiesService {
         prev: page > 1 ? page - 1 : null,
         next: page < lastPage ? page + 1 : null,
       },
-      data: activities,
+      data: {
+        area: area,
+        activities: activities,
+      },
     };
   }
 

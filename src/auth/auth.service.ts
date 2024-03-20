@@ -7,8 +7,9 @@ import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { LoginDto, RegisterDto } from './auth.dto';
+import { LoginDto, RefreshDto, RegisterDto } from './auth.dto';
 import { Role } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
     private readonly userService: UsersService,
     private jwt: JwtService,
     private configService: ConfigService,
+    private prisma: PrismaService,
   ) {}
 
   async register(body: RegisterDto) {
@@ -29,8 +31,13 @@ export class AuthService {
       newUser.email,
       newUser.role,
     );
+
+    await this.updateRefreshToken(newUser.id, tokens.refreshToken);
+    const { password, ...returnedUser } = newUser;
     return {
+      user: returnedUser,
       token: tokens.refreshToken,
+      expiresIn: 518400,
     };
   }
 
@@ -42,8 +49,12 @@ export class AuthService {
       throw new BadRequestException('Password is incorrect');
 
     const tokens = await this.getTokens(user.id, user.email, user.role);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+    const { password, ...returnedUser } = user;
     return {
+      user: returnedUser,
       token: tokens.refreshToken,
+      expiresIn: 518400,
     };
   }
 
@@ -51,21 +62,23 @@ export class AuthService {
     return this.userService.update(userId, { refreshToken: null });
   }
 
-  async refreshToken(userId: number, refreshToken: string) {
+  async refreshToken(userId: number, body: RefreshDto) {
     const user = await this.userService.findById(userId);
     if (!user || !user.refreshToken)
       throw new ForbiddenException('Access denied');
 
     const refreshTokenMatches = await bcrypt.compare(
-      refreshToken,
+      body.refreshToken,
       user.refreshToken,
     );
 
     if (!refreshTokenMatches) throw new ForbiddenException('Access denied');
+
     const tokens = await this.getTokens(user.id, user.email, user.role);
-    await this.updateRefreshToken(user.id, user.email, tokens.refreshToken);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
     return {
       token: tokens.refreshToken,
+      expiresIn: 518400,
     };
   }
 
@@ -101,15 +114,11 @@ export class AuthService {
     };
   }
 
-  async updateRefreshToken(
-    userId: number,
-    email: string,
-    refreshToken: string,
-  ) {
+  async updateRefreshToken(userId: number, refreshToken: string) {
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
     await this.userService.update(userId, {
-      email,
       refreshToken: hashedRefreshToken,
     });
+    return;
   }
 }
